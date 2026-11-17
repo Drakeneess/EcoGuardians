@@ -4,27 +4,27 @@ using UnityEngine;
 
 public class Character : MonoBehaviour, IDamageable
 {
+    [Header("Health Settings")]
     public float health = 100f;
 
     public float maxHealt { get; set; }
     public float currentHealth { get; set; }
 
-    protected virtual void Start()
+    protected virtual void Awake()
     {
-        // Initialize health values
-        maxHealt = health;
-        currentHealth = maxHealt;
+        InitializeHealth();
     }
 
     protected virtual void Update()
     {
+        
     }
 
     public virtual void TakeDamage(float damage)
     {
         if (damage < 0) return; // Prevent healing through negative damage
         currentHealth -= damage;
-        if (currentHealth < 0)
+        if (currentHealth <= 0)
         {
             currentHealth = 0;
             Die();
@@ -48,5 +48,13 @@ public class Character : MonoBehaviour, IDamageable
     public float GetCurrentHealtPercentage()
     {
         return currentHealth / maxHealt;
+    }
+    public virtual void Respawn(){
+
+    }
+    protected virtual void InitializeHealth(){
+        // Initialize health values
+        maxHealt = health;
+        currentHealth = maxHealt;
     }
 }

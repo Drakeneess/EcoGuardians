@@ -10,5 +10,6 @@ public interface IDamageable
     void TakeDamage(float damage);
     void Heal(float healAmount);
     void Die();
-    float GetCurrentHealtPercentage();
+    void Respawn();
+    float GetCurrentHealtPercentage(); 
 }

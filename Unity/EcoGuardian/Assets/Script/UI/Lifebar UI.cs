@@ -13,7 +13,7 @@ public class LifebarUI : MonoBehaviour
         forward
     }
 
-    void Start()
+    protected virtual void Start()
     {
         if (character == null)
         {
@@ -26,7 +26,7 @@ public class LifebarUI : MonoBehaviour
         }
     }
 
-    void Update()
+    protected virtual void Update()
     {
         UpdateHealthBar();
     }

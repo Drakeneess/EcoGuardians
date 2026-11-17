@@ -33,13 +33,23 @@ public class InputController : MonoBehaviour
         // Opcional: Aquí puedes agregar lógica adicional si se necesita en cada frame
     }
 
-    public static float RightAction()
+    public static float AttackButton()
     {
-        return inputs.Game.RightTrigger.ReadValue<float>();
+        if(HandDomainController.IsRightHandDomain()){
+            return inputs.Game.RightTrigger.ReadValue<float>();
+        }
+        else{
+            return inputs.Game.LeftTrigger.ReadValue<float>();
+        }
     }
-    public static float LeftAction()
+    public static float ShieldAction()
     {
-        return inputs.Game.LeftTrigger.ReadValue<float>();
+        if (HandDomainController.IsRightHandDomain()){
+            return inputs.Game.LeftTrigger.ReadValue<float>();
+        }
+        else{
+            return inputs.Game.RightTrigger.ReadValue<float>();
+        }
     }
     public static float ButtonA(){
         return inputs.Game.AButton.ReadValue<float>();

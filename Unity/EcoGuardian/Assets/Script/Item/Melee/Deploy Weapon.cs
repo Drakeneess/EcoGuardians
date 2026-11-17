@@ -6,11 +6,16 @@ public class DeployWeapon : MonoBehaviour
     public Transform deployable; // Arma desplegable
     public float transitionDuration = 0.5f; // Duración de la transición
 
+    // Referencia al AudioSource para reproducir sonidos
+    protected AudioSource audioSource;
+
     private Coroutine transitionCoroutine;
 
     protected virtual void Start()
     {
         SetWeaponState(false);
+        // Obtener el AudioSource del objeto
+        audioSource = GetComponent<AudioSource>();
     }
 
     // Controla el estado del arma (activar o desactivar)

@@ -11,22 +11,26 @@ public class Pistol : MonoBehaviour
     public float fireRate = 0.5f;        // Tiempo de espera entre disparos
     public Transform weaponSocket;
     public LayerMask groundLayer;
-
-    public Transform slideTransform;    // Transform de la corredera
-    public float slideLimitMin = -0.1f; // Límite mínimo para el movimiento de la corredera
-    public float slideLimitMax = 0.1f;  // Límite máximo para el movimiento de la corredera
+    public GameObject pointer;
+    public ParticleSystem muzzleFlash;
 
     private Battery battery;               // Referencia a la batería (suponiendo que la tienes)
     private Rigidbody rb;
     private float nextFireTime = 0f;     // Tiempo para el próximo disparo
     private XRGrabInteractable xRGrab;
     private bool isHeld = false;
+    private AudioClip shootSound;
+    private AudioSource audioSource;
 
     // Start is called before the first frame update
     void Start()
     {
+        audioSource=GetComponent<AudioSource>();
+        shootSound=SoundController.GetSound(2);
+
         // Inicialización si es necesario
         xRGrab = GetComponent<XRGrabInteractable>();
+        pointer.SetActive(false);
         rb = GetComponent<Rigidbody>();
         // Suscribir los eventos de agarre y soltar
         if (xRGrab != null)
@@ -40,7 +44,14 @@ public class Pistol : MonoBehaviour
     {
         // Al agarrar el objeto, activamos el arma
         isHeld = true;
+        pointer.SetActive(true);
         transform.SetParent(null);
+        if(args.interactorObject.transform.CompareTag("RightHand")){
+            HandDomainController.SetHandDomain(HandDomainController.HandDomain.Right);
+        }
+        else if(args.interactorObject.transform.CompareTag("LeftHand")){
+            HandDomainController.SetHandDomain(HandDomainController.HandDomain.Left);
+        }
     }
 
     private void OnRelease(SelectExitEventArgs args)
@@ -48,6 +59,7 @@ public class Pistol : MonoBehaviour
         // Al soltar el objeto, desactivamos el arma
         isHeld = false;
         rb.isKinematic = false;
+        pointer.SetActive(false);
     }
 
     // Update is called once per frame
@@ -56,15 +68,13 @@ public class Pistol : MonoBehaviour
         if (battery != null)
         {
             // Verificar si se debe disparar y si el tiempo actual es mayor o igual al tiempo para el próximo disparo
-            if (InputController.RightAction() > 0 && Time.time >= nextFireTime && battery.GetCurrentEnergy() > 0 && isHeld)
+            if (InputController.AttackButton() > 0 && Time.time >= nextFireTime && battery.GetCurrentEnergy() > 0 && isHeld)
             {
                 Shoot();
                 nextFireTime = Time.time + fireRate; // Actualiza el tiempo para el próximo disparo
             }
         }
-
-        // Llamar a la función para mover la corredera
-        MoveSlide();
+        if(transform.position.x<-200|| transform.position.y<-200|| transform.position.z<-200) BackHolder();
     }
 
     private void Shoot()
@@ -73,28 +83,14 @@ public class Pistol : MonoBehaviour
         GameObject projectile = Instantiate(projectilePrefab, shootPoint.position, shootPoint.rotation);
         // Aquí puedes agregar lógica adicional como aplicar fuerza al proyectil si es necesario
         battery.DrainEnergy();
+        muzzleFlash.Play();
+        PlayShootSound();
     }
-
-    // Función para mover la corredera con limitación en el eje Z
-    private void MoveSlide()
+    private void PlayShootSound()
     {
-        if (slideTransform != null)
+        if (audioSource != null && shootSound != null)
         {
-            // Obtener la posición local de la corredera
-            float localZ = slideTransform.localPosition.z;
-
-            // Limitar el movimiento de la corredera en el eje Z
-            if (localZ < slideLimitMin)
-            {
-                localZ = slideLimitMin;  // No permitir que se mueva por debajo del límite mínimo
-            }
-            else if (localZ > slideLimitMax)
-            {
-                localZ = slideLimitMax;  // No permitir que se mueva por encima del límite máximo
-            }
-
-            // Aplicar la posición limitada
-            slideTransform.localPosition = new Vector3(slideTransform.localPosition.x, slideTransform.localPosition.y, localZ);
+            audioSource.PlayOneShot(shootSound);
         }
     }
 
@@ -110,13 +106,18 @@ public class Pistol : MonoBehaviour
 
     private void OnCollisionEnter(Collision other)
     {
-        if(isHeld || transform.parent!=null) return;
-        if (other.gameObject.CompareTag("Ground")){
-            // Ajustar la posición y rotación de la espada al socket
-            transform.SetParent(weaponSocket);
-            transform.position = weaponSocket.position;
-            transform.rotation = weaponSocket.rotation;
-            rb.isKinematic = true;
+        if (other.gameObject.CompareTag("Ground") && !isHeld){
+            BackHolder();
         }
+    }
+    public bool HasBattery(){
+        return battery != null;
+    }
+    private void BackHolder(){
+        // Ajustar la posición y rotación de la espada al socket
+        transform.SetParent(weaponSocket);
+        transform.position = weaponSocket.position;
+        transform.rotation = weaponSocket.rotation;
+        rb.isKinematic = true;
     }
 }

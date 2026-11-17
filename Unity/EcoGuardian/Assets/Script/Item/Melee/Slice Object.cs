@@ -1,60 +1,44 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using EzySlice;
-
 public class SliceObject : MonoBehaviour
 {
-    public Transform startSlicePoint;
-    public Transform endSlicePoint;
-    public VelocityEstimator velocityEstimator;
-    public LayerMask sliceableLayer;
-    public Material crossSectionMaterial;
-    public float cutForce=2000;
-    public float objectLifeTime=3000;
-    // Start is called before the first frame update
+    public LayerMask sliceableLayer; // Define las capas de los objetos que pueden ser afectados
+    public float damage = 10f; // Daño que se aplicará
+    public ParticleSystem sparks;
+
+    private AudioSource audioSource;
+    private AudioClip hitSound;
+
     void Start()
     {
-        
+        audioSource = GetComponent<AudioSource>();
+        hitSound = SoundController.GetSound(1); // Asegúrate de que SoundController funcione correctamente
     }
 
-    // Update is called once per frame
-    void FixedUpdate()
+    private void PlayHitSound()
     {
-        bool hasHit=Physics.Linecast(startSlicePoint.position,endSlicePoint.position,out RaycastHit hit,sliceableLayer);
-        if(hasHit && !hit.transform.CompareTag("Player")){
-            GameObject target = hit.transform.gameObject;
-            Slice(target);
+        if (audioSource != null && hitSound != null)
+        {
+            audioSource.PlayOneShot(hitSound);
         }
     }
-    public void Slice(GameObject target){
-        Vector3 velocity=velocityEstimator.GetVelocityEstimate();
-        print(velocity);
-        Vector3 planeNormal = Vector3.Cross(endSlicePoint.position-startSlicePoint.position,velocity);
-        planeNormal.Normalize();
 
-        SlicedHull slicedHull = target.Slice(endSlicePoint.position, planeNormal);
-        if(slicedHull!=null){
-            GameObject upperHull=slicedHull.CreateUpperHull(target, crossSectionMaterial);
-            SetupSlicedComponent(upperHull);
-            GameObject lowerHull=slicedHull.CreateLowerHull(target, crossSectionMaterial);
-            SetupSlicedComponent(lowerHull);
-
-            Destroy(target);
-        }
-    }
-    private void SetupSlicedComponent(GameObject slicedObject)
+    private void OnTriggerEnter(Collider other)
     {
-        // Add a MeshCollider and Rigidbody to the sliced object
-        MeshCollider meshCollider = slicedObject.AddComponent<MeshCollider>();
-        meshCollider.convex = true;
-        
-        Rigidbody rb = slicedObject.AddComponent<Rigidbody>();
-        rb.AddExplosionForce(cutForce, slicedObject.transform.position, 1);
-
-        // Ensure that the sliced object is assigned to the correct layer
-        slicedObject.layer = LayerMask.NameToLayer("Character"); // Replace with your layer name
-
-        Destroy(slicedObject,objectLifeTime);
+        // Verifica si el objeto está en el Layer deseado usando el LayerMask
+        if (((1 << other.gameObject.layer) & sliceableLayer) != 0)
+        {
+            // Intenta obtener el componente Enemy del objeto
+            Enemy enemy = other.GetComponent<Enemy>();
+            if (enemy != null && enemy.currentHealth > 0)
+            {
+                // Aplica daño al enemigo
+                enemy.TakeDamage(damage);
+                // Reproduce el sonido del golpe
+                PlayHitSound();
+                sparks.Play();
+            }
+        }
     }
 }
