@@ -6,7 +6,7 @@
 # Generated standalone game distribution at repository root
 # Do NOT ignore Unity/EcoGuardians/ (the Unity source project).
 /EcoGuardians/
-/EcoGuardians.rar
+/*.rar
 
 # Unity-generated caches, temporary files and builds (at any depth)
 **/[Ll]ibrary/
