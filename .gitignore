@@ -76,3 +76,11 @@ Desktop.ini
 *.tmp
 *.swp
 *.swo
+
+# Exterior: datos de iluminacion horneada demasiado grandes
+/Unity/EcoGuardian/Assets/Scenes/Exterior/LightingData.asset
+/Unity/EcoGuardian/Assets/Scenes/Exterior/LightingData.asset.meta
+
+# Audio assets - local only
+/Unity/EcoGuardian/Assets/Sound/
+/Unity/EcoGuardian/Assets/Sound.meta

@@ -8,6 +8,11 @@ TagManager:
   - RightHand
   - Battery Holder
   - Ground
+  - LeftHand
+  - Hand
+  - Shield
+  - Projectile
+  - Parry
   layers:
   - Default
   - TransparentFX
